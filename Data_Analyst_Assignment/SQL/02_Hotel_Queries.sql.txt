@@ -1,0 +1,64 @@
+-- ==========================================
+-- HOTEL QUERY SOLUTIONS (PART A)
+-- ==========================================
+
+-- Q1 Last booked room for every user
+SELECT b.user_id, b.room_no
+FROM bookings b
+JOIN (
+    SELECT user_id, MAX(booking_date) AS last_date
+    FROM bookings
+    GROUP BY user_id
+) t
+ON b.user_id = t.user_id
+AND b.booking_date = t.last_date;
+
+
+-- Q2 Total billing amount for bookings in Nov 2021
+SELECT bc.booking_id,
+       SUM(bc.item_quantity  i.item_rate) AS total_bill
+FROM booking_commercials bc
+JOIN items i
+ON bc.item_id = i.item_id
+WHERE YEAR(bc.bill_date) = 2021
+AND MONTH(bc.bill_date) = 11
+GROUP BY bc.booking_id;
+
+
+-- Q3 Bills  1000 in Oct 2021
+SELECT bc.bill_id,
+       SUM(bc.item_quantity  i.item_rate) AS bill_amount
+FROM booking_commercials bc
+JOIN items i
+ON bc.item_id = i.item_id
+WHERE YEAR(bc.bill_date) = 2021
+AND MONTH(bc.bill_date) = 10
+GROUP BY bc.bill_id
+HAVING SUM(bc.item_quantity  i.item_rate)  1000;
+
+
+-- Q4 Most ordered and least ordered item per month
+SELECT MONTH(bc.bill_date) AS month_no,
+       i.item_name,
+       SUM(bc.item_quantity) AS total_qty
+FROM booking_commercials bc
+JOIN items i
+ON bc.item_id = i.item_id
+WHERE YEAR(bc.bill_date) = 2021
+GROUP BY MONTH(bc.bill_date), i.item_name
+ORDER BY month_no, total_qty DESC;
+
+
+-- Q5 2nd highest bill customer per month
+SELECT MONTH(bc.bill_date) AS month_no,
+       b.user_id,
+       bc.bill_id,
+       SUM(bc.item_quantity  i.item_rate) AS total_bill
+FROM booking_commercials bc
+JOIN items i
+ON bc.item_id = i.item_id
+JOIN bookings b
+ON bc.booking_id = b.booking_id
+WHERE YEAR(bc.bill_date) = 2021
+GROUP BY MONTH(bc.bill_date), b.user_id, bc.bill_id
+ORDER BY month_no, total_bill DESC;
